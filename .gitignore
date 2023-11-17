@@ -1,0 +1,44 @@
+# Compiled source #
+###################
+wolf64.z64
+spear64.z64
+
+# Data files #
+##############
+*.wl6
+*.sod
+*.sd1
+*.sd2
+*.sd3
+*.sd4
+
+# Ares generated files #
+##############
+*.pak
+*.ram
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build Folders #
+##############
+/build/
+/filesystem/
+
+# VS Files & Folders #
+##############
+*.user
+/debug
+/.vs
+/libraries
+
+# VS Code Files & Folders #
+##############
+/.vscode
