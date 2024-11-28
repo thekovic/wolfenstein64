@@ -1,6 +1,6 @@
 # Wolfenstein 64
 
-A port of Wolfenstein 3D and Spear of Destiny to the Nintendo 64 console,
+A port of Wolfenstein 3D and Spear of Destiny to the Nintendo 64,
 adapted from [Wolf4SDL](https://github.com/11001011101001011/Wolf4SDL) and
 using [libdragon](https://libdragon.dev/).
 
@@ -21,7 +21,7 @@ ROMs built from the shareware versions of the game are included in the repositor
 ## Building
 
 [Libdragon
-Unstable](https://github.com/DragonMinded/libdragon/wiki/Unstable-branch) is
+Preview](https://github.com/DragonMinded/libdragon/wiki/Preview-branch) is
 required. See the [Install
 Instructions](https://github.com/DragonMinded/libdragon/wiki/Installing-libdragon)
 for how to set it up. Ensure your `N64_INST` environment variable is set to the
@@ -45,10 +45,10 @@ folder.
 Then use one of these commands to build the appropriate ROM.
 
 ```sh
-make -j GAME=wolf
-make -j GAME=spear
-make -j GAME=wolfdemo
-make -j GAME=speardemo
+make GAME=wolf
+make GAME=spear
+make GAME=wolfdemo
+make GAME=speardemo
 ```
 
 ## Controls
@@ -70,4 +70,4 @@ make -j GAME=speardemo
 Other classic id software games with open source N64 ports:
 
 - [Omnispeak64](https://github.com/Ryzee119/Omnispeak64)
-- [64doom](https://github.com/jnmartin84/64doom)
+- [libdragonDOOM](https://github.com/thekovic/LibdragonDOOM)
