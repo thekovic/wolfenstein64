@@ -132,7 +132,7 @@ void Present(surface_t *surface)
     rdpq_set_mode_copy(false);
     rdpq_mode_tlut(TLUT_RGBA16);
     rdpq_tex_upload_tlut(UncachedUShortAddr(curpal), 0, 256);
-    rdpq_tex_blit(surface, 16, 8, NULL);
+    rdpq_tex_blit(surface, 0, 0, NULL);
     rdpq_detach_wait();
     display_show(cur);
 }

@@ -110,7 +110,7 @@ void VL_SetVGAPlaneMode (void)
 {
     int i;
 
-    resolution_t res = { .width = screenWidth + 32, .height = screenHeight + 16, .interlaced = INTERLACE_OFF };
+    resolution_t res = { .width = screenWidth, .height = screenHeight, .interlaced = INTERLACE_OFF, .overscan_margin = 0.05};
     display_init(res, screenBits == 16 ? DEPTH_16_BPP : DEPTH_32_BPP, 2, GAMMA_NONE, FILTERS_RESAMPLE);
 
     memcpy(UncachedUShortAddr(curpal), gamepal, sizeof gamepal);
