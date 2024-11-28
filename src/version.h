@@ -1,7 +1,12 @@
 #ifndef __VERSION_H_
 #define __VERSION_H_
 
-#include "config.h"
+#ifndef GAMETITLE
+    #define GAMETITLE ""
+#endif
+#ifndef ROMNAME
+    #define ROMNAME ""
+#endif
 
 #ifndef VERSIONALREADYCHOSEN              // used for batch compiling
 

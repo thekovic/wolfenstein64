@@ -978,7 +978,7 @@ extern  objtype     objlist[MAXACTORS];
 extern  objtype     *newobj,*player,*objfreelist,*killerobj;
 
 extern  tiletype    tilemap[MAPSIZE][MAPSIZE];      // wall values only
-extern  bool        spotvis[MAPSIZE][MAPSIZE];
+extern  byte        spotvis[MAPSIZE][MAPSIZE];
 extern  objtype     *actorat[MAPSIZE][MAPSIZE];
 #ifdef REVEALMAP
 extern  bool        mapseen[MAPSIZE][MAPSIZE];

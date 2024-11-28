@@ -987,8 +987,6 @@ static void InitGame()
     boolean didjukebox=false;
 #endif
 
-    N64_Init();
-
     SignonScreen ();
 
 	VW_UpdateScreen();
