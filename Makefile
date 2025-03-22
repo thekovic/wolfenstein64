@@ -1,4 +1,5 @@
 BUILD_DIR=build
+SOURCE_DIR=src
 include $(N64_INST)/include/n64.mk
 
 N64_CFLAGS := $(filter-out -Werror -O2,$(N64_CFLAGS)) -I$(BUILD_DIR) -Os
@@ -19,60 +20,67 @@ ifdef SKILL
 	OPTIONS += DEVSKILL=$(SKILL)
 endif
 
+asset_names := audiohed audiot gamemaps maphead vgadict vgahead vgagraph vswap
+
 ifeq ($(GAME),spear)
   ROMTITLE := "\"Spear64\""
   ROMNAME := spear64
   OPTIONS += CARMACIZED SPEAR GOODTIMES
-  assets := audiohed.sod audiot.sod gamemaps.sod maphead.sod \
-			vgadict.sod vgahead.sod vgagraph.sod vswap.sod
+  assets := $(addsuffix .sod,$(asset_names))
 else ifeq ($(GAME),speardemo)
   ROMTITLE := "\"SpearDemo64\""
   ROMNAME := speardemo64
   OPTIONS += CARMACIZED SPEAR SPEARDEMO
-  assets := audiohed.sdm audiot.sdm gamemaps.sdm maphead.sdm \
-			vgadict.sdm vgagraph.sdm vgahead.sdm vswap.sdm
+  assets := $(addsuffix .sdm,$(asset_names))
 else ifeq ($(GAME),wolfdemo)
   ROMTITLE := "\"WolfDemo64\""
   ROMNAME := wolfdemo64
   OPTIONS += CARMACIZED UPLOAD
-  assets := audiohed.wl1 audiot.wl1 gamemaps.wl1 maphead.wl1 \
-			vgadict.wl1 vgagraph.wl1 vgahead.wl1 vswap.wl1
+  assets := $(addsuffix .wl1,$(asset_names))
 else ifeq ($(GAME),wolf)
   ROMTITLE := "\"Wolfenstein64\""
   ROMNAME := wolf64
   OPTIONS += CARMACIZED GOODTIMES
-  assets := audiohed.wl6 audiot.wl6 gamemaps.wl6 maphead.wl6 vgadict.wl6 \
-			vgagraph.wl6 vgahead.wl6 vswap.wl6
+  assets := $(addsuffix .wl6,$(asset_names))
 else
 	$(error Unknown game $(GAME))
 endif
 
 OPTIONS += GAMETITLE=$(ROMTITLE) ROMNAME="\"$(ROMNAME)\""
 
+# Set DFS root to appropriate game version
+N64_MKDFS_ROOT := $(N64_MKDFS_ROOT)/$(GAME)
 # Convert OPTIONS to GCC -D flags
 DEFINES = $(foreach opt,$(OPTIONS),-D$(opt))
 N64_CFLAGS += $(DEFINES)
 
 $(shell mkdir -p $(BUILD_DIR))
 
-src := id_ca.c id_in.c id_pm.c id_sd.c id_us.c id_vh.c id_vl.c \
+SOURCE_FILES := id_ca.c id_in.c id_pm.c id_sd.c id_us.c id_vh.c id_vl.c \
 	   signon.c wl_act1.c wl_act2.c wl_agent.c wl_atmos.c wl_cloudsky.c \
 	   wl_debug.c wl_draw.c wl_game.c wl_inter.c wl_main.c wl_menu.c \
 	   wl_parallax.c wl_plane.c wl_play.c wl_scale.c wl_shade.c wl_state.c \
 	   wl_text.c wl_utils.c dbopl.cpp n64_main.c
 
-src := $(addprefix src/,$(src))
+SOURCE_FILES := $(addprefix $(SOURCE_DIR)/,$(SOURCE_FILES))
+C_SOURCES   := $(filter %.c,$(SOURCE_FILES))
+CPP_SOURCES := $(filter %.cpp,$(SOURCE_FILES))
+
+OBJECT_FILES := $(C_SOURCES:$(SOURCE_DIR)/%.c=$(BUILD_DIR)/%.o) \
+                $(CPP_SOURCES:$(SOURCE_DIR)/%.cpp=$(BUILD_DIR)/%.o)
+
 assets_conv := $(addprefix filesystem/$(GAME)/,$(assets))
+assets := $(addprefix data/,$(assets))
 
 all: $(ROMNAME).z64
 
 filesystem/$(GAME)/%: data/%
 	@mkdir -p $(dir $@)
 	@echo "    [DATA] $@"
-	cp "$<" "$@"
+	@cp "$<" "$@"
 
 $(BUILD_DIR)/$(ROMNAME).dfs: $(assets_conv)
-$(BUILD_DIR)/$(ROMNAME).elf: $(src:%.c=$(BUILD_DIR)/%.o) $(src:%.cpp=$(BUILD_DIR)/%.o)
+$(BUILD_DIR)/$(ROMNAME).elf: $(OBJECT_FILES)
 
 $(ROMNAME).z64: N64_ROM_TITLE=$(ROMTITLE)
 $(ROMNAME).z64: N64_ROM_SAVETYPE=sram1m
@@ -82,6 +90,6 @@ $(ROMNAME).z64: $(BUILD_DIR)/$(ROMNAME).dfs
 clean:
 	rm -rf $(BUILD_DIR) filesystem/ $(ROMNAME).z64
 
--include $(wildcard $(BUILD_DIR)/src/*.d)
+-include $(wildcard $(BUILD_DIR)/$(SOURCE_DIR)/*.d)
 
 .PHONY: all clean
