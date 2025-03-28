@@ -293,8 +293,9 @@ void SD_SetPosition(int channel, int leftpos, int rightpos)
     switch (DigiMode)
     {
         case sds_SoundBlaster:
-            mixer_ch_set_vol(channel, (((15 - leftpos) << 4) + 15)/15.0f,
-                (((15 - rightpos) << 4) + 15)/15.0f);
+            float left_vol  = (15 - leftpos) / 15.0f;
+            float right_vol = (15 - rightpos) / 15.0f;
+            mixer_ch_set_vol(channel, left_vol, right_vol);
             break;
         default:
             break;
