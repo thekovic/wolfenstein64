@@ -19,29 +19,32 @@ endif
 ifdef SKILL
 	OPTIONS += DEVSKILL=$(SKILL)
 endif
+ifdef SHOWFPS
+	OPTIONS += SHOWFPS
+endif
 
 asset_names := audiohed audiot gamemaps maphead vgadict vgahead vgagraph vswap
 
 ifeq ($(GAME),spear)
-  ROMTITLE := "\"Spear64\""
-  ROMNAME := spear64
-  OPTIONS += CARMACIZED SPEAR GOODTIMES
-  assets := $(addsuffix .sod,$(asset_names))
+	ROMTITLE := "\"Spear64\""
+	ROMNAME := spear64
+	OPTIONS += CARMACIZED SPEAR GOODTIMES
+	assets := $(addsuffix .sod,$(asset_names))
 else ifeq ($(GAME),speardemo)
-  ROMTITLE := "\"SpearDemo64\""
-  ROMNAME := speardemo64
-  OPTIONS += CARMACIZED SPEAR SPEARDEMO
-  assets := $(addsuffix .sdm,$(asset_names))
+	ROMTITLE := "\"SpearDemo64\""
+	ROMNAME := speardemo64
+	OPTIONS += CARMACIZED SPEAR SPEARDEMO
+	assets := $(addsuffix .sdm,$(asset_names))
 else ifeq ($(GAME),wolfdemo)
-  ROMTITLE := "\"WolfDemo64\""
-  ROMNAME := wolfdemo64
-  OPTIONS += CARMACIZED UPLOAD
-  assets := $(addsuffix .wl1,$(asset_names))
+	ROMTITLE := "\"WolfDemo64\""
+	ROMNAME := wolfdemo64
+	OPTIONS += CARMACIZED UPLOAD
+	assets := $(addsuffix .wl1,$(asset_names))
 else ifeq ($(GAME),wolf)
-  ROMTITLE := "\"Wolfenstein64\""
-  ROMNAME := wolf64
-  OPTIONS += CARMACIZED GOODTIMES
-  assets := $(addsuffix .wl6,$(asset_names))
+	ROMTITLE := "\"Wolfenstein64\""
+	ROMNAME := wolf64
+	OPTIONS += CARMACIZED GOODTIMES
+	assets := $(addsuffix .wl6,$(asset_names))
 else
 	$(error Unknown game $(GAME))
 endif
@@ -57,17 +60,17 @@ N64_CFLAGS += $(DEFINES)
 $(shell mkdir -p $(BUILD_DIR))
 
 SOURCE_FILES := id_ca.c id_in.c id_pm.c id_sd.c id_us.c id_vh.c id_vl.c \
-	   signon.c wl_act1.c wl_act2.c wl_agent.c wl_atmos.c wl_cloudsky.c \
-	   wl_debug.c wl_draw.c wl_game.c wl_inter.c wl_main.c wl_menu.c \
-	   wl_parallax.c wl_plane.c wl_play.c wl_scale.c wl_shade.c wl_state.c \
-	   wl_text.c wl_utils.c dbopl.cpp n64_main.c
+				signon.c wl_act1.c wl_act2.c wl_agent.c wl_atmos.c wl_cloudsky.c \
+				wl_debug.c wl_draw.c wl_game.c wl_inter.c wl_main.c wl_menu.c \
+				wl_parallax.c wl_plane.c wl_play.c wl_scale.c wl_shade.c wl_state.c \
+				wl_text.c wl_utils.c dbopl.cpp n64_main.c
 
 SOURCE_FILES := $(addprefix $(SOURCE_DIR)/,$(SOURCE_FILES))
 C_SOURCES   := $(filter %.c,$(SOURCE_FILES))
 CPP_SOURCES := $(filter %.cpp,$(SOURCE_FILES))
 
 OBJECT_FILES := $(C_SOURCES:$(SOURCE_DIR)/%.c=$(BUILD_DIR)/%.o) \
-                $(CPP_SOURCES:$(SOURCE_DIR)/%.cpp=$(BUILD_DIR)/%.o)
+				$(CPP_SOURCES:$(SOURCE_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 
 assets_conv := $(addprefix filesystem/$(GAME)/,$(assets))
 assets := $(addprefix data/,$(assets))

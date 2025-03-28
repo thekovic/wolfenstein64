@@ -36,6 +36,9 @@ void N64_Init(void)
     *PI_BSD_DOM2_PGS = 0xd;
     *PI_BSD_DOM2_RLS = 0x2;
     enable_interrupts();
+#ifdef SHOWFPS
+    rdpq_text_register_font(FONT_BUILTIN_DEBUG_MONO, rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_MONO));
+#endif
 }
 
 typedef struct  __attribute__((aligned(16))) {
@@ -133,6 +136,9 @@ void Present(surface_t *surface)
     rdpq_mode_tlut(TLUT_RGBA16);
     rdpq_tex_upload_tlut(UncachedUShortAddr(curpal), 0, 256);
     rdpq_tex_blit(surface, 0, 0, NULL);
+#ifdef SHOWFPS
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 16, 20, "FPS: %f", display_get_fps());
+#endif
     rdpq_detach_wait();
     display_show(cur);
 }
