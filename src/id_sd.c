@@ -257,6 +257,8 @@ SD_StopDigitized(void)
             for (int i = 0; i < N_CHANNELS; i++)
               mixer_ch_stop(i);
             break;
+        default:
+            break;
     }
 }
 
@@ -293,6 +295,8 @@ void SD_SetPosition(int channel, int leftpos, int rightpos)
         case sds_SoundBlaster:
             mixer_ch_set_vol(channel, (((15 - leftpos) << 4) + 15)/15.0f,
                 (((15 - rightpos) << 4) + 15)/15.0f);
+            break;
+        default:
             break;
     }
 }
@@ -564,6 +568,8 @@ SDL_StartDevice(void)
             break;
         case sdm_AdLib:
             SDL_SyncAL();
+            break;
+        default:
             break;
     }
     SoundNumber = (soundnames) 0;
@@ -931,6 +937,8 @@ SD_PlaySound(soundnames sound)
 #endif
             SDL_ALPlaySound((AdLibSound *)s);
             break;
+        default:
+            break;
     }
 
     SoundNumber = sound;
@@ -958,6 +966,8 @@ SD_SoundPlaying(void)
         case sdm_AdLib:
             result = alSound? true : false;
             break;
+        default:
+            break;
     }
 
     if (result)
@@ -984,6 +994,8 @@ SD_StopSound(void)
             break;
         case sdm_AdLib:
             SDL_ALStopSound();
+            break;
+        default:
             break;
     }
 
@@ -1033,6 +1045,8 @@ SD_MusicOff(void)
             alOut(alEffects, 0);
             for (i = 0;i < sqMaxTracks;i++)
                 alOut(alFreqH + i + 1, 0);
+            break;
+        default:
             break;
     }
 
@@ -1121,6 +1135,8 @@ SD_FadeOutMusic(void)
         case smm_AdLib:
             // DEBUG - quick hack to turn the music off
             SD_MusicOff();
+            break;
+        default:
             break;
     }
 }
