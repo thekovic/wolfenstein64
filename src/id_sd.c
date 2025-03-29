@@ -270,7 +270,10 @@ int SD_GetChannelForDigi(int which)
 
     uint64_t dist = 0, curdist;
     uint64_t cur = get_ticks();
-    for (int i = 2; i < N_CHANNELS; i++)
+    // Not sure how this works but looping from 1 seems to reserve channel 0
+    // for gun shot sounds which is desirable because that's the single most
+    // common sound effect.
+    for (int i = 1; i < N_CHANNELS; i++)
     {
         if (!channelSoundPos[i].valid)
             return i;
@@ -337,7 +340,7 @@ int SD_PlayDigitized(word which,int leftpos,int rightpos)
 
     int channel = SD_GetChannelForDigi(which);
 
-    waveform_t *sample = &channelSoundPos[channel].wave;
+    waveform_t* sample = &channelSoundPos[channel].wave;
 
     if (which != channelSoundPos[channel].which)
     {
@@ -345,14 +348,24 @@ int SD_PlayDigitized(word which,int leftpos,int rightpos)
 
         channelSoundPos[channel].which = which;
 
-        sample->ctx = PM_GetSoundPage(DigiList[which].startpage);
-        sample->len = DigiList[which].length;
+        // Initialize new waveform to reset its UUID registered with libdragon's
+        // mixer. Without doing this, libdragon will play a buffered sound effect
+        // instead which results in SMG sounding like pistol, for example.
+        *sample = (waveform_t) {
+            .bits = 8,
+            .channels = 1,
+            .frequency = ORIGSAMPLERATE,
+            .name = "sfx",
+            .read = SD_ReadSample,
+            .ctx = PM_GetSoundPage(DigiList[which].startpage),
+            .len = DigiList[which].length,
+        };
     }
 
     mixer_ch_play(channel, sample);
     channelSoundPos[channel].valid = 1;
     channelSoundPos[channel].started = get_ticks();
-    SD_SetPosition(channel, leftpos,rightpos);
+    SD_SetPosition(channel, leftpos, rightpos);
 
     return channel;
 }
@@ -769,15 +782,14 @@ SD_Startup(void)
 
     for (int i = 0; i < lengthof(channelSoundPos); i++)
     {
-        waveform_t *wave = &channelSoundPos[i].wave;
-        wave->bits = 8;
-        wave->channels = 1;
-        wave->frequency = ORIGSAMPLERATE;
-        wave->loop_len = 0;
-        wave->name = "sfx";
-        wave->len = 0;
-        wave->read = SD_ReadSample;
-        wave->ctx = NULL;
+        channelSoundPos[i].wave = (waveform_t) {
+            .bits = 8,
+            .channels = 1,
+            .frequency = ORIGSAMPLERATE,
+            .name = "sfx",
+            .len = 0,
+            .read = SD_ReadSample,
+        };
 
         channelSoundPos[i].which = -1;
     }
@@ -797,24 +809,28 @@ SD_Startup(void)
     YM3812Write(oplChip,1,0x20); // Set WSE=1
 //    YM3812Write(0,8,0); // Set CSM=0 & SEL=0		 // already set in for statement
 
-    FMGenerator.len = WAVEFORM_UNKNOWN_LEN;
-    FMGenerator.bits = 16;
-    FMGenerator.channels = 1;
-    FMGenerator.name = "IMF";
-    FMGenerator.loop_len = 0;
-    FMGenerator.frequency = param_samplerate;
-    FMGenerator.read = SDL_IMFMusicPlayer;
+    FMGenerator = (waveform_t) {
+        .len = WAVEFORM_UNKNOWN_LEN,
+        .bits = 16,
+        .channels = 1,
+        .name = "IMF",
+        .loop_len = 0,
+        .frequency = param_samplerate,
+        .read = SDL_IMFMusicPlayer,
+    };
 
     alTimeCount = 0;
 	
     // Add PC speaker sound mixer
-    PCGenerator.len = WAVEFORM_UNKNOWN_LEN;
-    PCGenerator.bits = 16;
-    PCGenerator.channels = 1;
-    PCGenerator.name = "PC";
-    PCGenerator.loop_len = 0;
-    PCGenerator.frequency = param_samplerate;
-    PCGenerator.read = SDL_PCMixCallback;
+    PCGenerator = (waveform_t) {
+        .len = WAVEFORM_UNKNOWN_LEN,
+        .bits = 16,
+        .channels = 1,
+        .name = "PC",
+        .loop_len = 0,
+        .frequency = param_samplerate,
+        .read = SDL_PCMixCallback,
+    };
 
     SD_SetSoundMode(sdm_AdLib);
     SD_SetMusicMode(smm_AdLib);
