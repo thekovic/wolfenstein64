@@ -707,10 +707,21 @@ void VGAClearScreen (void)
     for(; y < viewheight; y++, dest += bufferPitch)
         memset(dest, shadetable[GetShade((y - viewheight / 2) << 3)][0x19], viewwidth);
 #else
-    for(y = 0; y < viewheight / 2; y++, dest += bufferPitch)
-        memset(dest, ceiling, viewwidth);
-    for(; y < viewheight; y++, dest += bufferPitch)
-        memset(dest, 0x19, viewwidth);
+    // Fast path if in fullscreen mode.
+    if (viewwidth == bufferPitch)
+    {
+    int halfScreen = viewwidth * (viewheight / 2);
+    memset(dest, ceiling, halfScreen);
+    memset(dest + halfScreen, 0x19, halfScreen);
+    }
+    // Old slower path that's necessary for smaller view sizes.
+    else
+    {
+        for(y = 0; y < viewheight / 2; y++, dest += bufferPitch)
+            memset(dest, ceiling, viewwidth);
+        for(; y < viewheight; y++, dest += bufferPitch)
+            memset(dest, 0x19, viewwidth);
+    }
 #endif
 }
 
