@@ -752,13 +752,9 @@ void SDL_IMFMusicPlayer(void *ctx, samplebuffer_t *sbuf, int wpos, int len, bool
 
 void SD_Poll(void)
 {
-    if (audio_can_write()) {
-      short *buf = audio_write_begin();
-      mixer_poll(buf, audio_get_buffer_length());
-      audio_write_end();
-      for (int i = 0; i < N_CHANNELS; i++)
+    mixer_try_play();
+    for (int i = 0; i < N_CHANNELS; i++)
         channelSoundPos[i].valid = mixer_ch_playing(i);
-  }
 }
 
 ///////////////////////////////////////////////////////////////////////////

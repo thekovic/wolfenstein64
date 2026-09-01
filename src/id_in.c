@@ -80,13 +80,14 @@ void IN_WaitAndProcessEvents()
     uint16_t prev = joypad_get_buttons(JOYPAD_PORT_1).raw;
     do {
         joypad_poll();
-        SD_Poll();
     } while (joypad_get_buttons(JOYPAD_PORT_1).raw == prev);
 }
 
 void IN_ProcessEvents()
 {
   joypad_poll();
+  // Poll audio here so that sound can be played while waiting for input
+  // (such as the intro screen)
   SD_Poll();
 }
 
@@ -186,15 +187,10 @@ void IN_StartAck(void)
 
 boolean IN_CheckAck (void)
 {
-    int i;
-
-    //
     // see if something has been pressed
-    //
-
     uint16_t buttons = joypad_get_buttons_pressed(JOYPAD_PORT_1).raw;
 
-    for(i = 0; i < 16; i++)
+    for(int i = 0; i < 16; i++)
     {
         uint16_t bit = 1 << i;
         if(buttons & bit)

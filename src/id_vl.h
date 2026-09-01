@@ -38,8 +38,8 @@ extern uint16_t curpal[256];
 // VGA hardware routines
 //
 
-void VL_Wait(int ms);
-void VL_WaitVBL(int a);
+void VL_Wait(uint32_t ms);
+void VL_WaitVBL(uint32_t a);
 
 void VL_ClearScreen(uint8_t c);
 

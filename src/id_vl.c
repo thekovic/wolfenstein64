@@ -51,14 +51,15 @@ CASSERT(lengthof(gamepal) == 256)
 
 //===========================================================================
 
-void VL_Wait(int ms)
+void VL_Wait(uint32_t ms)
 {
+    // Poll audio while waiting so that sound plays during fade outs during the intro.
     uint64_t start = get_ticks_ms();
     while (get_ticks_ms() - start < (uint64_t) ms)
         SD_Poll();
 }
 
-void VL_WaitVBL(int a)
+void VL_WaitVBL(uint32_t a)
 {
     VL_Wait(a*8);
 }
@@ -111,7 +112,7 @@ void VL_SetVGAPlaneMode (void)
     int i;
 
     resolution_t res = { .width = screenWidth, .height = screenHeight, .interlaced = INTERLACE_OFF, .overscan_margin = 0.05};
-    display_init(res, screenBits == 16 ? DEPTH_16_BPP : DEPTH_32_BPP, 2, GAMMA_NONE, FILTERS_RESAMPLE);
+    display_init(res, screenBits == 16 ? DEPTH_16_BPP : DEPTH_32_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
 
     memcpy(UncachedUShortAddr(curpal), gamepal, sizeof gamepal);
 
