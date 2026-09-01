@@ -1241,6 +1241,9 @@ static void DemoLoop()
         NewGame(param_difficulty,0);
 
 #ifndef SPEAR
+        // Episodes and levels are indexed from 0 but I wanna pass them sensibly as 1-1 or 3-6
+        // (aka 11 and 36) so subtract 11 to get the correct episode and level.
+        param_tedlevel = param_tedlevel - 11;
         gamestate.episode = param_tedlevel/10;
         gamestate.mapon = param_tedlevel%10;
 #else
