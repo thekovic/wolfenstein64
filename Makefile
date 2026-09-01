@@ -2,8 +2,8 @@ BUILD_DIR=build
 SOURCE_DIR=src
 include $(N64_INST)/include/n64.mk
 
-N64_CFLAGS := $(filter-out -Werror -O2,$(N64_CFLAGS)) -I$(BUILD_DIR) -Os
-N64_CXXFLAGS := $(filter-out -Werror -O2,$(N64_CXXFLAGS)) -I$(BUILD_DIR) -Os
+N64_C_AND_CXX_FLAGS += -Wno-error
+# N64_C_AND_CXX_FLAGS += -Os
 OPTIONS :=
 
 GAME ?= wolf
