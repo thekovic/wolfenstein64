@@ -710,9 +710,9 @@ void VGAClearScreen (void)
     // Fast path if in fullscreen mode.
     if (viewwidth == bufferPitch)
     {
-    int halfScreen = viewwidth * (viewheight / 2);
-    memset(dest, ceiling, halfScreen);
-    memset(dest + halfScreen, 0x19, halfScreen);
+        int halfScreen = viewwidth * (viewheight / 2);
+        memset(dest, ceiling, halfScreen);
+        memset(dest + halfScreen, 0x19, halfScreen);
     }
     // Old slower path that's necessary for smaller view sizes.
     else
@@ -1004,7 +1004,108 @@ void CalcTics (void)
 
 
 //==========================================================================
+void WallRefresh_AngleSetup(
+    int32_t* xstep, int32_t* ystep,
+    longword* xpartial, longword* ypartial)
+{
+    // setup to trace a ray through pixx view pixel
+    int16_t angle = midangle + pixelangle[pixx];                // delta for this pixel
 
+    if (angle < 0)                                      // -90 - -1 degree arc
+        angle += ANG360;                                // -90 is the same as 270
+    if (angle >= ANG360)                                // 360-449 degree arc
+        angle -= ANG360;                                // -449 is the same as 89
+
+    // setup xstep/ystep based on angle
+    if (angle < ANG90)                                  // 0-89 degree arc
+    {
+        xtilestep = 1;
+        ytilestep = -1;
+        *xstep = finetangent[ANG90 - 1 - angle];
+        *ystep = -finetangent[angle];
+        *xpartial = xpartialup;
+        *ypartial = ypartialdown;
+    }
+    else if (angle < ANG180)                            // 90-179 degree arc
+    {
+        xtilestep = -1;
+        ytilestep = -1;
+        *xstep = -finetangent[angle - ANG90];
+        *ystep = -finetangent[ANG180 - 1 - angle];
+        *xpartial = xpartialdown;
+        *ypartial = ypartialdown;
+    }
+    else if (angle < ANG270)                            // 180-269 degree arc
+    {
+        xtilestep = -1;
+        ytilestep = 1;
+        *xstep = -finetangent[ANG270 - 1 - angle];
+        *ystep = finetangent[angle - ANG180];
+        *xpartial = xpartialdown;
+        *ypartial = ypartialup;
+    }
+    else if (angle < ANG360)                            // 270-359 degree arc
+    {
+        xtilestep = 1;
+        ytilestep = 1;
+        *xstep = finetangent[angle - ANG270];
+        *ystep = finetangent[ANG360 - 1 - angle];
+        *xpartial = xpartialup;
+        *ypartial = ypartialup;
+    }
+}
+
+bool WallRefresh_TracePushWall(
+    int32_t xstep, int32_t ystep,
+    fixed xinttemp, fixed yinttemp)
+{
+    // special treatment when player is in back tile of pushwall
+    if (tilemap[focaltx][focalty] == BIT_WALL)
+    {
+        if (pwalldir == di_east && xtilestep == 1 || pwalldir == di_west && xtilestep == -1)
+        {
+            yinttemp = yintercept - ((ystep * (64 - pwallpos)) >> 6);
+
+            //
+            //  trace hit vertical pushwall back?
+            //
+            if (yinttemp >> TILESHIFT == focalty)
+            {
+                if (pwalldir == di_east)
+                    xintercept = (focaltx << TILESHIFT) + (pwallpos << 10);
+                else
+                    xintercept = ((focaltx << TILESHIFT) - TILEGLOBAL) + ((64 - pwallpos) << 10);
+
+                yintercept = yinttemp;
+                yinttile = yintercept >> TILESHIFT;
+                tilehit = pwalltile;
+                HitVertWall();
+                return true;
+            }
+        }
+        else if (pwalldir == di_south && ytilestep == 1 || pwalldir == di_north && ytilestep == -1)
+        {
+            xinttemp = xintercept - ((xstep * (64 - pwallpos)) >> 6);
+
+            // trace hit horizontal pushwall back?
+            if (xinttemp >> TILESHIFT == focaltx)
+            {
+                if (pwalldir == di_south)
+                    yintercept = (focalty << TILESHIFT) + (pwallpos << 10);
+                else
+                    yintercept = ((focalty << TILESHIFT) - TILEGLOBAL) + ((64 - pwallpos) << 10);
+
+                xintercept = xinttemp;
+                xinttile = xintercept >> TILESHIFT;
+                tilehit = pwalltile;
+                HitHorizWall();
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 
 /*
 =====================
@@ -1023,7 +1124,6 @@ void CalcTics (void)
 
 void WallRefresh (void)
 {
-    int16_t   angle;
     int32_t   xstep,ystep;
     fixed     xinttemp,yinttemp;                            // holds temporary intercept position
     longword  xpartial,ypartial;
@@ -1033,59 +1133,9 @@ void WallRefresh (void)
 
     for (pixx = 0; pixx < viewwidth; pixx++)
     {
-        //
-        // setup to trace a ray through pixx view pixel
-        //
-        angle = midangle + pixelangle[pixx];                // delta for this pixel
+        WallRefresh_AngleSetup(&xstep, &ystep, &xpartial, &ypartial);
 
-        if (angle < 0)                                      // -90 - -1 degree arc
-            angle += ANG360;                                // -90 is the same as 270
-        if (angle >= ANG360)                                // 360-449 degree arc
-            angle -= ANG360;                                // -449 is the same as 89
-
-        //
-        // setup xstep/ystep based on angle
-        //
-        if (angle < ANG90)                                  // 0-89 degree arc
-        {
-            xtilestep = 1;
-            ytilestep = -1;
-            xstep = finetangent[ANG90 - 1 - angle];
-            ystep = -finetangent[angle];
-            xpartial = xpartialup;
-            ypartial = ypartialdown;
-        }
-        else if (angle < ANG180)                            // 90-179 degree arc
-        {
-            xtilestep = -1;
-            ytilestep = -1;
-            xstep = -finetangent[angle - ANG90];
-            ystep = -finetangent[ANG180 - 1 - angle];
-            xpartial = xpartialdown;
-            ypartial = ypartialdown;
-        }
-        else if (angle < ANG270)                            // 180-269 degree arc
-        {
-            xtilestep = -1;
-            ytilestep = 1;
-            xstep = -finetangent[ANG270 - 1 - angle];
-            ystep = finetangent[angle - ANG180];
-            xpartial = xpartialdown;
-            ypartial = ypartialup;
-        }
-        else if (angle < ANG360)                            // 270-359 degree arc
-        {
-            xtilestep = 1;
-            ytilestep = 1;
-            xstep = finetangent[angle - ANG270];
-            ystep = finetangent[ANG360 - 1 - angle];
-            xpartial = xpartialup;
-            ypartial = ypartialup;
-        }
-
-        //
         // initialise variables for intersection testing
-        //
         yintercept = FixedMul(ystep,xpartial) + viewy;
         yinttile = yintercept >> TILESHIFT;
         xtile = focaltx + xtilestep;
@@ -1096,54 +1146,11 @@ void WallRefresh (void)
 
         texdelta = 0;
 
-        //
-        // special treatment when player is in back tile of pushwall
-        //
-        if (tilemap[focaltx][focalty] == BIT_WALL)
-        {
-            if (pwalldir == di_east && xtilestep == 1 || pwalldir == di_west && xtilestep == -1)
-            {
-                yinttemp = yintercept - ((ystep * (64 - pwallpos)) >> 6);
+        if (WallRefresh_TracePushWall(xstep, ystep, xpartial, ypartial))
+            continue;
 
-                //
-                //  trace hit vertical pushwall back?
-                //
-                if (yinttemp >> TILESHIFT == focalty)
-                {
-                    if (pwalldir == di_east)
-                        xintercept = (focaltx << TILESHIFT) + (pwallpos << 10);
-                    else
-                        xintercept = ((focaltx << TILESHIFT) - TILEGLOBAL) + ((64 - pwallpos) << 10);
-
-                    yintercept = yinttemp;
-                    yinttile = yintercept >> TILESHIFT;
-                    tilehit = pwalltile;
-                    HitVertWall();
-                    continue;
-                }
-            }
-            else if (pwalldir == di_south && ytilestep == 1 || pwalldir == di_north && ytilestep == -1)
-            {
-                xinttemp = xintercept - ((xstep * (64 - pwallpos)) >> 6);
-
-                //
-                // trace hit horizontal pushwall back?
-                //
-                if (xinttemp >> TILESHIFT == focaltx)
-                {
-                    if (pwalldir == di_south)
-                        yintercept = (focalty << TILESHIFT) + (pwallpos << 10);
-                    else
-                        yintercept = ((focalty << TILESHIFT) - TILEGLOBAL) + ((64 - pwallpos) << 10);
-
-                    xintercept = xinttemp;
-                    xinttile = xintercept >> TILESHIFT;
-                    tilehit = pwalltile;
-                    HitHorizWall();
-                    continue;
-                }
-            }
-        }
+        // NOTE: Effect of the above is very negligible (< 3 us per ray).
+        // Optimization needs to happen in the HitVertWall/HitHorizWall functions.
 
 //
 // trace along this angle until we hit a wall
